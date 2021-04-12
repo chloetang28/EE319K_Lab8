@@ -74,7 +74,7 @@ int main1(void){      // single step this program and look at Data
 // 1.50cm   2.475V  3072     1500  
 // 2.00cm   3.300V  4095     2000  
 uint32_t Convert(uint32_t data){
-  return 0; // replace this line with your Lab 8 solution
+  return (156*data)/4096+27; // replace this line with your Lab 8 solution
 }
 uint32_t startTime,stopTime;
 uint32_t ADCtime,OutDectime,ConvertTime,OutFixTime; // in usec
@@ -150,6 +150,8 @@ uint32_t MailValue;
 void SysTick_Handler(void){ // every 100 ms
   PF1 ^= 0x02;     // Heartbeat
   // write this
+	MailValue = ADC_In();
+	MailStatus = 1; 
 }
 // final main program to create distance meter
 // put your final lab8 main here
@@ -164,7 +166,11 @@ int main(void){
   EnableInterrupts();
   while(1){
     // wait on mailbox
+		while(MailStatus == 0){};
     PF3 ^= 0x08;       // Heartbeat
+		MailStatus = 0;
+		Position = Convert(MailValue);
+		LCD_OutFix(Position);
     // write this 
   }
 }
