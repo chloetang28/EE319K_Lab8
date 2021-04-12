@@ -45,6 +45,12 @@ void EnableInterrupts(void);  // Enable interrupts
 // Output: none
 void SysTick_Init(unsigned long period){
   // write this
+	NVIC_ST_CTRL_R = 0;    // disable SysTick
+	NVIC_ST_RELOAD_R = period - 1;   // max reload value
+	NVIC_ST_CURRENT_R = 0; // write to CURRENT
+	NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0x20000000; // priority
+	NVIC_ST_CTRL_R = 7; // ENABLE, INTEN, CLK SRC	
+
 }
 
 // Initialize Port F so PF1, PF2 and PF3 are heartbeats
@@ -163,12 +169,21 @@ int main(void){
  // 32-point averaging  
   PortF_Init();
   // other initialization, like mailbox
+	SSD1306_OutClear();
+	SSD1306_OutString("Lab 8\n\nDistance= ");
+	LCD_OutFix(0);
+	SSD1306_OutString("cm");
+	SysTick_Init(8000000);
+	
+	
   EnableInterrupts();
   while(1){
     // wait on mailbox
 		while(MailStatus == 0){};
     PF3 ^= 0x08;       // Heartbeat
 		MailStatus = 0;
+	  SSD1306_OutClear();
+	  SSD1306_SetCursor(10,2);
 		Position = Convert(MailValue);
 		LCD_OutFix(Position);
     // write this 
